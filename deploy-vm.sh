@@ -12,8 +12,8 @@ SNIPPET_TARGET_PATH=/var/lib/vz/snippets
 REPOSITORY_RAW_SOURCE_URL="https://raw.githubusercontent.com/namakemono-san/kube-cluster-on-proxmox/${TARGET_BRANCH}"
 VM_LIST=(
     #vmid #vmname          #cpu #mem  #target-ip   #target-host
-    "1001 alcaris-k8s-cp-1 4    8192  192.168.0.20 nmkmn-srv-prox01"
-    "1101 alcaris-k8s-wk-1 4    8192  192.168.0.20 nmkmn-srv-prox01"
+    "1001 alcaris-k8s-cp-1 4    8192  192.168.0.10 nmkmn-srv-prox01"
+    "1101 alcaris-k8s-wk-1 4    8192  192.168.0.10 nmkmn-srv-prox01"
 )
 
 # endregion
