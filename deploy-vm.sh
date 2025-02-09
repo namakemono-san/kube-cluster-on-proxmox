@@ -11,9 +11,9 @@ SNIPPET_TARGET_VOLUME=local
 SNIPPET_TARGET_PATH=/var/lib/vz/snippets
 REPOSITORY_RAW_SOURCE_URL="https://raw.githubusercontent.com/namakemono-san/kube-cluster-on-proxmox/${TARGET_BRANCH}"
 VM_LIST=(
-    #vmid #vmname          #cpu #mem  #target-ip   #target-host
-    "1001 alcaris-k8s-cp-1 4    8192  192.168.0.10 nmkmn-srv-prox01"
-    "1101 alcaris-k8s-wk-1 4    8192  192.168.0.10 nmkmn-srv-prox01"
+    #vmid #vmname          #cpu #mem #vmsrvip       #target-ip   #target-host
+    "1001 alcaris-k8s-cp-1 4    8192 192.168.0.101  192.168.0.10 nmkmn-srv-prox01"
+    "1101 alcaris-k8s-wk-1 4    8192 192.168.0.111  192.168.0.10 nmkmn-srv-prox01"
 )
 
 # endregion
@@ -55,7 +55,7 @@ rm noble-server-cloudimg-amd64.img
 
 for array in "${VM_LIST[@]}"
 do
-    echo "${array}" | while read -r vmid vmname cpu mem targetip targethost
+    echo "${array}" | while read -r vmid vmname cpu mem vmsrvip targetip targethost
     do
         # clone from template
         # in clone phase, can't create vm-disk to local volume
@@ -71,6 +71,7 @@ do
         ssh -n "${targetip}" qm resize "${vmid}" scsi0 30G
 
         # create snippet for cloud-init (user-config)
+# ------
 cat > "$SNIPPET_TARGET_PATH"/"$vmname"-user.yaml << EOF
 #cloud-config
 hostname: ${vmname}
@@ -100,8 +101,26 @@ runcmd:
   # change default shell to bash
   - chsh -s $(which bash) cloudinit
 EOF
+# ------
+cat > "$SNIPPET_TARGET_PATH"/"$vmname"-network.yaml << EOF
+version: 1
+config:
+  - type: physical
+    name: ens18
+    subnets:
+    - type: static
+      address: '${vmsrvip}'
+      netmask: '255.255.255.0'
+      gateway: '192.168.0.1'
+  - type: nameserver
+    address:
+    - '1.1.1.1'
+    - '1.0.0.1'
+    search:
+    - 'local'
+EOF
         # set cloud-init snippet to vm
-        ssh -n "${targetip}" qm set "${vmid}" --cicustom "user=${SNIPPET_TARGET_VOLUME}:snippets/${vmname}-user.yaml"
+        ssh -n "${targetip}" qm set "${vmid}" --cicustom "user=${SNIPPET_TARGET_VOLUME}:snippets/${vmname}-user.yaml,network=${SNIPPET_TARGET_VOLUME}:snippets/${vmname}-network.yaml"
     done
 done
 
