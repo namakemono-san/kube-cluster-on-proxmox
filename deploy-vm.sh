@@ -126,7 +126,7 @@ done
 
 for array in "${VM_LIST[@]}"
 do
-    echo "${array}" | while read -r vmid vmname cpu mem targetip targethost
+    echo "${array}" | while read -r vmid vmname cpu mem vmsrvip targetip targethost
     do
         # start vm
         ssh -n "${targetip}" qm start "${vmid}"
